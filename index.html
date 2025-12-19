@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transport Delay Predictor</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+</head>
+
+<body>
+
+  <div class="loading-container loading">
+    <div class="loading-icon">
+      <img src="https://img.icons8.com/?size=100&id=6UucmpN78Ig0&format=png&color=000000" alt="">
+    </div>
+  </div>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <!-- <h2>Navigation</h2> -->
+        <p>Navigation</p>
+      </div>
+      <!-- <hr> -->
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" onclick="switchPage('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="switchPage('prediction')">Predict Delay</button>
+        <button class="nav-btn" onclick="switchPage('analysis')">Data Analysis</button>
+        <button class="nav-btn" onclick="switchPage('performance')">Model Performance</button>
+      </nav>
+      <!-- <hr> -->
+      <div class="sidebar-stats">
+        <h3>Quick Stats</h3>
+        <div class="stat-item">
+          <span class="stat-label">Total Records</span>
+          <span class="stat-value" id="quickTotalRecords">-</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Avg Delay</span>
+          <span class="stat-value" id="quickAvgDelay">-</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Routes</span>
+          <span class="stat-value" id="quickRoutes">-</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- <header class="header">
+        <div class="header-content">
+          <h1 class="main-header">Transport Delay Predictor</h1>
+          <p class="sub-header">AI-Powered Bus Delay Analysis & Prediction System</p>
+        </div>
+      </header> -->
+
+      <!-- Page Content -->
+      <div class="pages-container">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page active">
+          <div class="page-content">
+            <h2>Dashboard Overview</h2>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Total Records</div>
+                <div class="metric-value" id="dashTotalRecords">0</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Mean Delay</div>
+                <div class="metric-value" id="dashMeanDelay">0.0 min</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Median Delay</div>
+                <div class="metric-value" id="dashMedianDelay">0.0 min</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Max Delay</div>
+                <div class="metric-value" id="dashMaxDelay">0.0 min</div>
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+              <div class="chart-container">
+                <h3>Delay Distribution</h3>
+                <div id="delayDistributionChart"></div>
+              </div>
+              <div class="chart-container">
+                <h3>Delay by Route</h3>
+                <div id="delayByRouteChart"></div>
+              </div>
+              <div class="chart-container">
+                <h3>Delay by Weather</h3>
+                <div id="delayByWeatherChart"></div>
+              </div>
+              <div class="chart-container">
+                <h3>Delay vs Passenger Count</h3>
+                <div id="delayVsPassengerChart"></div>
+              </div>
+            </div>
+
+            <!-- Data Table -->
+            <h3>Dataset Preview</h3>
+            <div class="table-container">
+              <table id="dataTable">
+                <thead>
+                  <tr>
+                    <th>Route ID</th>
+                    <th>Scheduled Time</th>
+                    <th>Actual Time</th>
+                    <th>Delay (min)</th>
+                    <th>Weather</th>
+                    <th>Passengers</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                  </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prediction Page -->
+        <div id="prediction-page" class="page">
+          <div class="page-content">
+            <h2>Predict Bus Delay</h2>
+            <p class="section-description">Enter the details below to predict the expected delay for a bus trip.</p>
+
+            <!-- Prediction Form -->
+            <form id="predictionForm" class="prediction-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="routeId">Route ID</label>
+                  <select id="routeId" required>
+                    <option value="">Select Route...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="scheduledDate">Scheduled Date</label>
+                  <input type="date" id="scheduledDate" required>
+                </div>
+                <div class="form-group">
+                  <label for="hour">Hour</label>
+                  <input type="number" id="hour" min="0" max="23" value="8" required>
+                </div>
+                <div class="form-group">
+                  <label for="minute">Minute</label>
+                  <input type="number" id="minute" min="0" max="59" value="0" required>
+                </div>
+                <div class="form-group">
+                  <label for="weather">Weather Condition</label>
+                  <select id="weather" required>
+                    <option value="sunny">Sunny</option>
+                    <option value="cloudy">Cloudy</option>
+                    <option value="rainy">Rainy</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="passengerCount">Passenger Count</label>
+                  <input type="number" id="passengerCount" min="0" max="200" value="50" required>
+                </div>
+                <div class="form-group">
+                  <label for="latitude">Latitude</label>
+                  <input type="number" id="latitude" min="23.0" max="26.0" step="0.1" value="24.5" required>
+                </div>
+                <div class="form-group">
+                  <label for="longitude">Longitude</label>
+                  <input type="number" id="longitude" min="31.0" max="34.0" step="0.1" value="32.5" required>
+                </div>
+                <div class="form-group">
+                  <label for="modelChoice">Select Model</label>
+                  <select id="modelChoice" required>
+                    <option value="xgboost">XGBoost</option>
+                    <option value="random_forest">Random Forest</option>
+                    <option value="linear_regression">Linear Regression</option>
+                    <option value="knn">K-Nearest Neighbors</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Predict Delay</button>
+            </form>
+
+            <!-- Prediction Results -->
+            <div id="predictionResults" class="prediction-results" style="display:none;">
+              <hr>
+              <h3>✨ Prediction Results</h3>
+
+              <div class="results-metrics">
+                <div class="result-card">
+                  <div class="result-label">Predicted Delay</div>
+                  <div class="result-value" id="predictedDelay">-</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">Status</div>
+                  <div class="result-value status-badge" id="statusBadge">-</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">Model Used</div>
+                  <div class="result-value" id="modelUsed">-</div>
+                </div>
+              </div>
+
+              <h3>Prediction Visualization</h3>
+              <div id="predictionGaugeChart"></div>
+
+              <h3>All Model Predictions Comparison</h3>
+              <div class="table-container">
+                <table id="modelComparisonTable">
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th>Predicted Delay (min)</th>
+                      <th>MAE</th>
+                      <th>R² Score</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modelComparisonBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Analysis Page -->
+        <div id="analysis-page" class="page">
+          <div class="page-content">
+            <h2>Data Analysis</h2>
+
+            <!-- Tabs -->
+            <div class="tabs">
+              <button class="tab-btn active" onclick="switchTab('stats')">Statistics</button>
+              <button class="tab-btn" onclick="switchTab('correlation')">Exploratory Analysis</button>
+              <button class="tab-btn" onclick="switchTab('rawdata')">Raw Data</button>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="stats-tab" class="tab-content active">
+              <h3>Dataset Statistics</h3>
+
+              <div class="stats-grid">
+                <div>
+                  <h4>Delay Statistics</h4>
+                  <div class="table-container">
+                    <table id="delayStatsTable">
+                      <tr>
+                        <td>Count</td>
+                        <td id="statCount">-</td>
+                      </tr>
+                      <tr>
+                        <td>Mean</td>
+                        <td id="statMean">-</td>
+                      </tr>
+                      <tr>
+                        <td>Std Dev</td>
+                        <td id="statStd">-</td>
+                      </tr>
+                      <tr>
+                        <td>Min</td>
+                        <td id="statMin">-</td>
+                      </tr>
+                      <tr>
+                        <td>Max</td>
+                        <td id="statMax">-</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+                <div>
+                  <h4>Passenger Count Statistics</h4>
+                  <div class="table-container">
+                    <table id="passengerStatsTable">
+                      <tr>
+                        <td>Count</td>
+                        <td id="passengerCount">-</td>
+                      </tr>
+                      <tr>
+                        <td>Mean</td>
+                        <td id="passengerMean">-</td>
+                      </tr>
+                      <tr>
+                        <td>Std Dev</td>
+                        <td id="passengerStd">-</td>
+                      </tr>
+                      <tr>
+                        <td>Min</td>
+                        <td id="passengerMin">-</td>
+                      </tr>
+                      <tr>
+                        <td>Max</td>
+                        <td id="passengerMax">-</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <h3>Delay by Route</h3>
+              <div class="table-container">
+                <table id="delayByRouteTable">
+                  <thead>
+                    <tr>
+                      <th>Route ID</th>
+                      <th>Mean Delay</th>
+                      <th>Median Delay</th>
+                      <th>Std Dev</th>
+                      <th>Count</th>
+                    </tr>
+                  </thead>
+                  <tbody id="delayByRouteBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Correlation Tab -->
+            <div id="correlation-tab" class="tab-content">
+              <h3>Correlation Analysis</h3>
+              <div id="correlationHeatmap"></div>
+              <h3>Correlation with Delay</h3>
+              <div id="correlationChart"></div>
+            </div>
+
+            <!-- Raw Data Tab -->
+            <div id="rawdata-tab" class="tab-content">
+              <h3>Raw Dataset</h3>
+              <div class="filters-group">
+                <div class="filter-item">
+                  <label>Filter by Route</label>
+                  <select id="rawRouteFilter" multiple></select>
+                </div>
+                <div class="filter-item">
+                  <label>Filter by Weather</label>
+                  <select id="rawWeatherFilter" multiple></select>
+                </div>
+                <div class="filter-item">
+                  <label>Max Delay (minutes)</label>
+                  <input type="range" id="maxDelayFilter" min="0" max="100" value="100">
+                  <span id="maxDelayValue">100</span>
+                </div>
+                <button class="btn btn-secondary" onclick="applyDataFilters()">Apply Filters</button>
+              </div>
+              <div class="table-container">
+                <table id="rawDataTable">
+                  <thead>
+                    <tr>
+                      <th>Route ID</th>
+                      <th>Scheduled Time</th>
+                      <th>Actual Time</th>
+                      <th>Delay (min)</th>
+                      <th>Weather</th>
+                      <th>Passengers</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rawDataBody">
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-secondary" onclick="downloadData()">Download CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Performance Page -->
+        <div id="performance-page" class="page">
+          <div class="page-content">
+            <h2>Model Performance</h2>
+
+            <h3>Model Comparison</h3>
+            <div class="table-container">
+              <table id="modelComparisonSummaryTable">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Test MAE (minutes)</th>
+                    <th>Test R² Score</th>
+                  </tr>
+                </thead>
+                <tbody id="modelComparisonSummaryBody">
+                </tbody>
+              </table>
+            </div>
+
+            <div class="charts-grid">
+              <div class="chart-container">
+                <h3>Mean Absolute Error Comparison</h3>
+                <div id="maeChart"></div>
+              </div>
+              <div class="chart-container">
+                <h3>R² Score Comparison</h3>
+                <div id="r2Chart"></div>
+              </div>
+            </div>
+
+            <div class="best-model-card">
+              <h3>Best Model</h3>
+              <div id="bestModelInfo"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+  <script src="app.js"></script>
+</body>
+
+</html>
